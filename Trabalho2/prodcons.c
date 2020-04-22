@@ -44,13 +44,15 @@ void insere_item(int item) {
 	buffer[proximo_a_colocar] = item;
 	proximo_a_colocar = (proximo_a_colocar + 1) % TAM_BUFFER;
 	produzido++;
-	n_disponiveis++; 
+	n_disponiveis++;
+	printf("Item adicionado, tamanho do buffer = %d\n", n_disponiveis);
+	fflush(stdout);
 	return;
 }
 
 //utiliza um item recebido (imprime hex no stderr)
 void usa_item(int item) {
-	printf("%x", item);
+	printf("Item usado: %x\n", item);
 	fflush(stdout);
 	return;
 }
@@ -63,6 +65,8 @@ int retira_item() {
 	proximo_a_retirar = (proximo_a_retirar + 1) % TAM_BUFFER;
 	consumido++;
 	n_disponiveis--;
+	printf("Item removido, tamanho do buffer = %d\n", n_disponiveis);
+	fflush(stdout);
 	return item;
 }
 
