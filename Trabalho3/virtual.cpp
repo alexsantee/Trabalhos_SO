@@ -3,12 +3,15 @@
 #include <vector>
 #include <map>
 #include <math.h>
+#include <ctime>
+
+using namespace std;
 
 //Constantes ajustaveis:
 //numero de bits para armazenar cada grandeza
-const unsigned int bits_tamanho = 10;
-const unsigned int bits_pagina = 6;
-const unsigned int bits_quadro = 5;
+const unsigned int bits_tamanho = 9;
+const unsigned int bits_pagina = 5;
+const unsigned int bits_quadro = 1;
 
 //Gerados automaticamente:
 //Memória Virtual
@@ -39,14 +42,12 @@ struct endereco_real{
     unsigned int quadro;    //Valor do quadro de página
     bool residencia;        //true se na memoria principal e false se na secundária
     //proximo valor depende de como selecionar as páginas que vão para o disco
-    float ultimo_uso;        //acompanha tempo de uso
+    time_t ultimo_uso;        //acompanha tempo de uso
 };
 
 typedef struct endereco_real endereco_real;
-typedef std::map<unsigned int, struct endereco_real> tabela_enderecos;
-typedef std::map<std::string, tabela_enderecos> tabela_processos;
-
-using namespace std;
+typedef map<unsigned int, struct endereco_real> tabela_enderecos;
+typedef map<string, tabela_enderecos> tabela_processos;
 
 //Ajuda para verificar as máscaras, imprime elas em binário
 void print_binario(unsigned int n){
@@ -95,11 +96,16 @@ int main(){
 
                 if(bit_map[pos] == true){ //quadro disponível
                     bit_map[pos] = false;
-                    cout << "Alocado quadro " << pos << " (mentira, falta implementar)" << endl;
+                    cout << "Alocado quadro " << pos  << endl;
+                    endereco_real endereco;
+                    endereco.quadro = pos;
+                    endereco.residencia = true;
+                    endereco.ultimo_uso = time(NULL);
                     //associa quadro ao processo
+                    tabela_virtual[pid][pos] = endereco;
                 }
                 else{
-                    cout << "Não há memória disponível (falta implementar)";
+                    cout << "Não há memória disponível (falta implementar)" << endl;
                 }
             }
         }
