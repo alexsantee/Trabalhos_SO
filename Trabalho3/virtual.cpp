@@ -62,9 +62,9 @@ void print_binario(unsigned int n){
 
 int main(){
     //Declara vetor de bits dos quadros de páginas na memória principal
-    vector<bool> bit_map;
+    vector<bool> bit_vector;
     //Inicializado como 1 (todos os quadros livres)
-    bit_map.assign(NUM_QUADROS, true);
+    bit_vector.assign(NUM_QUADROS, true);
    
     //Declara tabela de mapeamento virtual
     tabela_processos tabela_virtual;
@@ -91,11 +91,11 @@ int main(){
             //encontra paginas vazia
             for(int i = 0; i < n_quadros; i++){
                 unsigned int pos;
-                for(pos = 0; bit_map[pos] == false && pos < bit_map.size() ;pos++)
+                for(pos = 0; bit_vector[pos] == false && pos < bit_vector.size() ;pos++)
                     ;
 
-                if(bit_map[pos] == true){ //quadro disponível
-                    bit_map[pos] = false;
+                if(bit_vector[pos] == true){ //quadro disponível
+                    bit_vector[pos] = false;
                     cout << "Alocado quadro " << pos  << endl;
                     endereco_real endereco;
                     endereco.quadro = pos;
