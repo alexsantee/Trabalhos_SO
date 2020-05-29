@@ -86,30 +86,56 @@ int main(){
         arg = s;
 
         cout << pid << " " << command << " " << arg << endl;
-        if(command == "C"){     //criação de processo
-            int n_quadros = ceil(stof(arg)/TAM_QUADRO);
-            //encontra paginas vazia
-            for(int i = 0; i < n_quadros; i++){
-                unsigned int pos;
-                for(pos = 0; bit_vector[pos] == false && pos < bit_vector.size() ;pos++)
-                    ;
+        switch(command.at(0)){
+            case 'C': 
+            {
+                int n_quadros = ceil(stof(arg)/TAM_QUADRO);
+                //encontra paginas vazia
+                for(int i = 0; i < n_quadros; i++){
+                    unsigned int pos;
+                    for(pos = 0; bit_vector[pos] == false && pos < bit_vector.size() ;pos++)
+                        ;
 
-                if(bit_vector[pos] == true){ //quadro disponível
-                    bit_vector[pos] = false;
-                    cout << "Alocado quadro " << pos  << endl;
-                    endereco_real endereco;
-                    endereco.quadro = pos;
-                    endereco.residencia = true;
-                    endereco.ultimo_uso = time(NULL);
-                    //associa quadro ao processo
-                    tabela_virtual[pid][pos] = endereco;
+                    if(bit_vector[pos] == true){ //quadro disponível
+                        bit_vector[pos] = false;
+                        cout << "Alocado quadro " << pos  << endl;
+                        endereco_real endereco;
+                        endereco.quadro = pos;
+                        endereco.residencia = true;
+                        endereco.ultimo_uso = time(NULL);
+                        //associa quadro ao processo
+                        tabela_virtual[pid][pos] = endereco;
+                    }
+                    else{
+                        cout << "Não há memória disponível (falta implementar)" << endl;
+                    }
                 }
-                else{
-                    cout << "Não há memória disponível (falta implementar)" << endl;
-                }
+
+                break;
             }
-        }
 
+            case 'W': 
+            {
+                //Modo mais simples de leitura, quando tudo está em RAM
+                //Processo para isolar o número da string
+                int n1 = arg.find('(');
+                int n2 = arg.find(')');
+                char aux[n2-n1];
+                int tam = arg.copy(aux,n2-n1-1, n1+1);
+                aux[tam] = '\0';
+                //Converte string de numero para inteiro correspondente
+                int auxint = stoi(aux);
+                auxint = auxint and MASCARA_PAGINA;
+                auxint = auxint >> 1;
+
+                endereco_real end = tabela_virtual[pid][auxint];
+                cout << end.quadro << endl;
+                //Como vc pode ver, acho q deu ruim, resolver isso dps!
+            }
+            case 'R': cout << "Faz o comando de leitura" << endl; break;
+            case 'P': cout << "Faz o comando de instrução da CPU" << endl; break;
+            case 'I': cout << "Faz o comando de instrução de I/O" << endl; break; 
+        }
     }
 
     entrada.close();
