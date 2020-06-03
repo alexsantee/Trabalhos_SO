@@ -49,6 +49,24 @@ typedef struct endereco_real endereco_real;
 typedef map<unsigned int, struct endereco_real> tabela_enderecos;
 typedef map<string, tabela_enderecos> tabela_processos;
 
+void print_tabela_processos(tabela_processos &tabela_virtual){
+
+	tabela_processos::iterator it_proc;
+	//Imprime cada processo
+	for(it_proc = tabela_virtual.begin(); it_proc != tabela_virtual.end(); it_proc++){
+		cout << it_proc->first << ":" << endl;
+		tabela_enderecos::iterator it_end;
+		//Imprime cada associacao virtual->real
+		for(it_end = it_proc->second.begin(); it_end != it_proc->second.end(); it_end++){
+			cout << "\t" << it_end->first << " - " << 
+					it_end->second.quadro << ", " <<
+					it_end->second.ultimo_uso << ", " <<
+					it_end->second.residencia << endl;
+		}
+	}
+	return;
+}
+
 //Ajuda para verificar as máscaras, imprime elas em binário
 void print_binario(unsigned int n){
     cout << "0b";
@@ -58,6 +76,20 @@ void print_binario(unsigned int n){
         else cout << "0";
         mascara >>= 1;
     }
+}
+
+void encerra_processo(string pid, vector<bool> &bit_vector, tabela_processos &tabela_virtual){
+
+    //Libera todos os enderecos virtuais ligados ao processo
+    tabela_enderecos processo = tabela_virtual[pid];
+    tabela_enderecos::iterator it;
+    for(it = processo.begin(); it != processo.end(); it++){
+        bit_vector[it->second.quadro] = true;
+    }
+    //Retira o processo da lista
+    tabela_virtual.erase(pid);
+
+    return;
 }
 
 void cria_processo(string pid, int n_quadros, vector<bool> &bit_vector, tabela_processos &tabela_virtual){
@@ -81,7 +113,9 @@ void cria_processo(string pid, int n_quadros, vector<bool> &bit_vector, tabela_p
 		}
 		//caso nao exista memoria
 		else{
-			cout << "Não há memória disponível (falta implementar)" << endl;
+			cout << "Não há memória disponível para nova página, encerrando " << pid << endl;
+            encerra_processo(pid, bit_vector, tabela_virtual);
+
 		}
 	}
 	return;
@@ -169,6 +203,8 @@ int main(){
     cout << endl << "bit_vector:" << endl;
 	for(unsigned int i = 0; i < bit_vector.size(); i++)
 	    cout << bit_vector[i];
+    cout << endl << "tabela de processos:" << endl;
+	print_tabela_processos(tabela_virtual);
     cout << endl << "MASCARA_ENDERECO:" << endl;
     print_binario(MASCARA_ENDERECO);
     cout << endl << "MASCARA_PAGINA:" << endl;
