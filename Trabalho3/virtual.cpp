@@ -42,7 +42,7 @@ struct endereco_real{
     unsigned int quadro;    //Valor do quadro de página
     bool residencia;        //true se na memoria principal e false se na secundária
     //proximo valor depende de como selecionar as páginas que vão para o disco
-    time_t ultimo_uso;        //acompanha tempo de uso
+    clock_t ultimo_uso;        //acompanha tempo de uso
 };
 
 typedef struct endereco_real endereco_real;
@@ -93,6 +93,9 @@ void encerra_processo(string pid, vector<bool> &bit_vector, tabela_processos &ta
 }
 
 void cria_processo(string pid, int n_quadros, vector<bool> &bit_vector, tabela_processos &tabela_virtual){
+    //verifica se processo ja existe
+    if(tabela_virtual.count(pid) == 1) return;
+
 	//encontra quadros vazios
 	for(int i = 0; i < n_quadros; i++){
 		unsigned int pos;
@@ -108,7 +111,7 @@ void cria_processo(string pid, int n_quadros, vector<bool> &bit_vector, tabela_p
 			//associa quadro ao processo
             tabela_virtual[pid][i].quadro = pos;
 			tabela_virtual[pid][i].residencia = true;
-			tabela_virtual[pid][i].ultimo_uso = time(NULL);
+			tabela_virtual[pid][i].ultimo_uso = clock();
 
 		}
 		//caso nao exista memoria
