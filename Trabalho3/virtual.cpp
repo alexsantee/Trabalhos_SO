@@ -11,7 +11,7 @@ using namespace std;
 //numero de bits para armazenar cada grandeza
 const unsigned int bits_tamanho = 9;
 const unsigned int bits_pagina = 5;
-const unsigned int bits_quadro = 1;
+const unsigned int bits_quadro = 3;
 
 //Gerados automaticamente:
 //Memória Virtual
@@ -60,6 +60,45 @@ void print_binario(unsigned int n){
     }
 }
 
+void cria_processo(string pid, int n_quadros, vector<bool> &bit_vector, tabela_processos &tabela_virtual){
+	//encontra paginas vazias
+	for(int i = 0; i < n_quadros; i++){
+		unsigned int pos;
+
+		//encontra uma pagina vazia
+		for(pos = 0; bit_vector[pos] == false && pos < bit_vector.size() ;pos++)
+			;
+
+		//ocupa quadro se disponivel
+		if(bit_vector[pos] == true){
+			bit_vector[pos] = false;
+			cout << "Alocado quadro " << pos  << " para " << pid << endl;
+			endereco_real endereco;
+			endereco.quadro = pos;
+			endereco.residencia = true;
+			endereco.ultimo_uso = time(NULL);
+			//associa quadro ao processo
+			tabela_virtual[pid][pos] = endereco;
+		}
+		//caso nao exista memoria
+		else{
+			cout << "Não há memória disponível (falta implementar)" << endl;
+		}
+	}
+	return;
+}
+
+int extrai_endereco(string arg){
+	int n1 = arg.find('(');
+	int n2 = arg.find(')');
+	char aux[n2-n1];
+	int tam = arg.copy(aux,n2-n1-1, n1+1);
+	aux[tam] = '\0';
+
+	//Converte string de numero para inteiro correspondente
+	return stoi(aux);
+}
+
 int main(){
     //Declara vetor de bits dos quadros de páginas na memória principal
     vector<bool> bit_vector;
@@ -69,10 +108,12 @@ int main(){
     //Declara tabela de mapeamento virtual
     tabela_processos tabela_virtual;
 
+	//Abre lista de comandos
     ifstream entrada;
     entrada.open("entrada.txt");
     if(!entrada.is_open()) exit(-1);
 
+	//Enquanto houver comandos
     string s;
     while( getline(entrada,s, ' ') ){
         //Parsing da linha
@@ -85,52 +126,29 @@ int main(){
         getline(entrada,s,'\n');
         arg = s;
 
+		//Print de debugging
         cout << pid << " " << command << " " << arg << endl;
         switch(command.at(0)){
             case 'C': 
             {
-                int n_quadros = ceil(stof(arg)/TAM_QUADRO);
-                //encontra paginas vazia
-                for(int i = 0; i < n_quadros; i++){
-                    unsigned int pos;
-                    for(pos = 0; bit_vector[pos] == false && pos < bit_vector.size() ;pos++)
-                        ;
-
-                    if(bit_vector[pos] == true){ //quadro disponível
-                        bit_vector[pos] = false;
-                        cout << "Alocado quadro " << pos  << endl;
-                        endereco_real endereco;
-                        endereco.quadro = pos;
-                        endereco.residencia = true;
-                        endereco.ultimo_uso = time(NULL);
-                        //associa quadro ao processo
-                        tabela_virtual[pid][pos] = endereco;
-                    }
-                    else{
-                        cout << "Não há memória disponível (falta implementar)" << endl;
-                    }
-                }
-
-                break;
+				int n_paginas = ceil(stof(arg)/TAM_QUADRO);
+				cria_processo( pid, n_paginas, bit_vector, tabela_virtual);
+				break;
             }
 
             case 'W': 
             {
                 //Modo mais simples de leitura, quando tudo está em RAM
-                //Processo para isolar o número da string
-                int n1 = arg.find('(');
-                int n2 = arg.find(')');
-                char aux[n2-n1];
-                int tam = arg.copy(aux,n2-n1-1, n1+1);
-                aux[tam] = '\0';
-                //Converte string de numero para inteiro correspondente
-                int auxint = stoi(aux);
-                auxint = auxint and MASCARA_PAGINA;
-                auxint = auxint >> 1;
+				int endereco = extrai_endereco(arg);
 
-                endereco_real end = tabela_virtual[pid][auxint];
-                cout << end.quadro << endl;
-                //Como vc pode ver, acho q deu ruim, resolver isso dps!
+                int pagina = endereco & MASCARA_PAGINA;
+                pagina = pagina >> bits_tamanho;
+
+				//FALTA VERIFICAR SE O ENDERECO ESTA NA MEMORIA DO PROCESSO!
+                endereco_real end = tabela_virtual[pid][pagina];
+                cout << "Escrita na pagina " << pagina <<
+						", correspondente ao quadro " << end.quadro <<
+						", no endereco " << (endereco&MASCARA_ENDERECO) << endl;
             }
             case 'R': cout << "Faz o comando de leitura" << endl; break;
             case 'P': cout << "Faz o comando de instrução da CPU" << endl; break;
@@ -141,6 +159,9 @@ int main(){
     entrada.close();
 
     //Util no debugging
+    cout << endl << "bit_vector:" << endl;
+	for(unsigned int i = 0; i < bit_vector.size(); i++)
+	    cout << bit_vector[i];
     cout << endl << "MASCARA_ENDERECO:" << endl;
     print_binario(MASCARA_ENDERECO);
     cout << endl << "MASCARA_PAGINA:" << endl;
