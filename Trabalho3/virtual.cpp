@@ -94,7 +94,10 @@ void encerra_processo(string pid, vector<bool> &bit_vector, tabela_processos &ta
 
 void cria_processo(string pid, int n_quadros, vector<bool> &bit_vector, tabela_processos &tabela_virtual){
     //verifica se processo ja existe
-    if(tabela_virtual.count(pid) == 1) return;
+    if(tabela_virtual.count(pid) == 1){
+		cout << "Processo " << pid << "não foi criado porque já existe" << endl;
+		return;
+	}
 
 	//encontra quadros vazios
 	for(int i = 0; i < n_quadros; i++){
@@ -143,7 +146,6 @@ bool realiza_RW(string arg, string pid, tabela_processos T, bool escreve){  //Re
     int pagina = endereco & MASCARA_PAGINA;
     pagina = pagina >> bits_tamanho;
 	
-    //FALTA VERIFICAR SE O ENDERECO ESTA NA MEMORIA DO PROCESSO!
     if(T.count(pid) == 0){
         cout << "Acesso inválido, processo " << pid << " inexistente!" << endl;
         return true;
@@ -154,6 +156,9 @@ bool realiza_RW(string arg, string pid, tabela_processos T, bool escreve){  //Re
             return false;
         }
     }
+
+	//Atualiza tempo de acesso
+	T[pid][pagina].ultimo_uso = clock();
 
     endereco_real end = T[pid][pagina];
     if(escreve){
