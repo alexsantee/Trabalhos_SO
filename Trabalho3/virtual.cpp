@@ -209,16 +209,18 @@ int main(){
 
             case 'W': 
             {
-                if(!realiza_RW(arg, pid, tabela_virtual, true))
+                if(!realiza_RW(arg, pid, tabela_virtual, true)){
                     encerra_processo(pid, bit_vector, tabela_virtual);
-
+                    cout << "Processo " << pid << " encerrado!" << endl;
+                }
                 break;
             }
             case 'R': 
             {
-                if(!realiza_RW(arg, pid, tabela_virtual, false))
+                if(!realiza_RW(arg, pid, tabela_virtual, false)){
                     encerra_processo(pid, bit_vector, tabela_virtual);
-
+                    cout << "Processo " << pid << " encerrado!" << endl;
+                }
                 break;
             }
             case 'P': cout << "Faz o comando de instrução da CPU" << endl; break;
