@@ -49,6 +49,24 @@ typedef struct endereco_real endereco_real;
 typedef map<unsigned int, struct endereco_real> tabela_enderecos;
 typedef map<string, tabela_enderecos> tabela_processos;
 
+void print_tabela_processos(tabela_processos &tabela_virtual){
+
+	tabela_processos::iterator it_proc;
+	//Imprime cada processo
+	for(it_proc = tabela_virtual.begin(); it_proc != tabela_virtual.end(); it_proc++){
+		cout << it_proc->first << ":" << endl;
+		tabela_enderecos::iterator it_end;
+		//Imprime cada associacao virtual->real
+		for(it_end = it_proc->second.begin(); it_end != it_proc->second.end(); it_end++){
+			cout << "\t" << it_end->first << " - " << 
+					it_end->second.quadro << ", " <<
+					it_end->second.ultimo_uso << ", " <<
+					it_end->second.residencia << endl;
+		}
+	}
+	return;
+}
+
 //Ajuda para verificar as máscaras, imprime elas em binário
 void print_binario(unsigned int n){
     cout << "0b";
@@ -177,6 +195,8 @@ int main(){
     cout << endl << "bit_vector:" << endl;
 	for(unsigned int i = 0; i < bit_vector.size(); i++)
 	    cout << bit_vector[i];
+    cout << endl << "tabela de processos:" << endl;
+	print_tabela_processos(tabela_virtual);
     cout << endl << "MASCARA_ENDERECO:" << endl;
     print_binario(MASCARA_ENDERECO);
     cout << endl << "MASCARA_PAGINA:" << endl;
