@@ -60,6 +60,20 @@ void print_binario(unsigned int n){
     }
 }
 
+void encerra_processo(string pid, vector<bool> &bit_vector, tabela_processos &tabela_virtual){
+
+    //Libera todos os enderecos virtuais ligados ao processo
+    tabela_enderecos processo = tabela_virtual[pid];
+    tabela_enderecos::iterator it;
+    for(it = processo.begin(); it != processo.end(); it++){
+        bit_vector[it->second.quadro] = true;
+    }
+    //Retira o processo da lista
+    tabela_virtual.erase(pid);
+
+    return;
+}
+
 void cria_processo(string pid, int n_quadros, vector<bool> &bit_vector, tabela_processos &tabela_virtual){
 	//encontra quadros vazios
 	for(int i = 0; i < n_quadros; i++){
@@ -81,7 +95,9 @@ void cria_processo(string pid, int n_quadros, vector<bool> &bit_vector, tabela_p
 		}
 		//caso nao exista memoria
 		else{
-			cout << "Não há memória disponível (falta implementar)" << endl;
+			cout << "Não há memória disponível para nova página, encerrando " << pid << endl;
+            encerra_processo(pid, bit_vector, tabela_virtual);
+
 		}
 	}
 	return;
