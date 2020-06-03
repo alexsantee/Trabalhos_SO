@@ -132,7 +132,7 @@ int extrai_endereco(string arg){
 	return stoi(aux);
 }
 
-void realiza_RW(string arg, string pid, tabela_processos T, bool escreve){  //Recebe as strings arg, pid, a tabela de processos e um booleano
+bool realiza_RW(string arg, string pid, tabela_processos T, bool escreve){  //Recebe as strings arg, pid, a tabela de processos e um booleano
                                                                             //true para indicar escrita e false para leitura
     //Modo mais simples de escrita, quando tudo está em RAM
 	int endereco = extrai_endereco(arg);
@@ -141,6 +141,17 @@ void realiza_RW(string arg, string pid, tabela_processos T, bool escreve){  //Re
     pagina = pagina >> bits_tamanho;
 	
     //FALTA VERIFICAR SE O ENDERECO ESTA NA MEMORIA DO PROCESSO!
+    if(T.count(pid) == 0){
+        cout << "Acesso inválido, processo " << pid << " inexistente!" << endl;
+        return true;
+    }
+    else{ 
+        if(T[pid].count(pagina) == 0){
+            cout << "Acesso inválido da pagina " << pagina << " pelo processo " << pid << "!" << endl;
+            return false;
+        }
+    }
+
     endereco_real end = T[pid][pagina];
     if(escreve){
         cout << "Escrita na pagina " << pagina <<
@@ -151,6 +162,9 @@ void realiza_RW(string arg, string pid, tabela_processos T, bool escreve){  //Re
 	    		", correspondente ao quadro " << end.quadro <<
 	    		", no endereco " << (endereco&MASCARA_ENDERECO) << endl;
     }
+
+    return true;
+    //A função retorna true se não houver necessidade de encerrar o processo, do contrário retorna false
 }
 
 int main(){
@@ -190,8 +204,20 @@ int main(){
                 break;
             }
 
-            case 'W': realiza_RW(arg, pid, tabela_virtual, true); break;
-            case 'R': realiza_RW(arg, pid, tabela_virtual, false); break;
+            case 'W': 
+            {
+                if(!realiza_RW(arg, pid, tabela_virtual, true))
+                    encerra_processo(pid, bit_vector, tabela_virtual);
+
+                break;
+            }
+            case 'R': 
+            {
+                if(!realiza_RW(arg, pid, tabela_virtual, false))
+                    encerra_processo(pid, bit_vector, tabela_virtual);
+
+                break;
+            }
             case 'P': cout << "Faz o comando de instrução da CPU" << endl; break;
             case 'I': cout << "Faz o comando de instrução de I/O" << endl; break; 
         }
