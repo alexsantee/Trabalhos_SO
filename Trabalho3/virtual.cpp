@@ -61,11 +61,11 @@ void print_binario(unsigned int n){
 }
 
 void cria_processo(string pid, int n_quadros, vector<bool> &bit_vector, tabela_processos &tabela_virtual){
-	//encontra paginas vazias
+	//encontra quadros vazios
 	for(int i = 0; i < n_quadros; i++){
 		unsigned int pos;
 
-		//encontra uma pagina vazia
+		//encontra um quadro vazio
 		for(pos = 0; bit_vector[pos] == false && pos < bit_vector.size() ;pos++)
 			;
 
@@ -73,12 +73,11 @@ void cria_processo(string pid, int n_quadros, vector<bool> &bit_vector, tabela_p
 		if(bit_vector[pos] == true){
 			bit_vector[pos] = false;
 			cout << "Alocado quadro " << pos  << " para " << pid << endl;
-			endereco_real endereco;
-			endereco.quadro = pos;
-			endereco.residencia = true;
-			endereco.ultimo_uso = time(NULL);
 			//associa quadro ao processo
-			tabela_virtual[pid][pos] = endereco;
+            tabela_virtual[pid][i].quadro = pos;
+			tabela_virtual[pid][i].residencia = true;
+			tabela_virtual[pid][i].ultimo_uso = time(NULL);
+
 		}
 		//caso nao exista memoria
 		else{
