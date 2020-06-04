@@ -155,18 +155,24 @@ bool realiza_RW(int endereco, string pid, tabela_processos T, bool escreve){  //
         }
     }
 
-	//Atualiza tempo de acesso
-	T[pid][pagina].ultimo_uso = clock();
+    if(T[pid][pagina].residencia == true){
+	    //Atualiza tempo de acesso
+	    T[pid][pagina].ultimo_uso = clock();
 
-    endereco_real end = T[pid][pagina];
-    if(escreve){
-        cout << "Escrita na pagina " << pagina <<
-	    		", correspondente ao quadro " << end.quadro <<
-	    		", no endereco " << (endereco&MASCARA_ENDERECO) << endl;
-    } else{
-        cout << "Leitura na pagina " << pagina <<
-	    		", correspondente ao quadro " << end.quadro <<
-	    		", no endereco " << (endereco&MASCARA_ENDERECO) << endl;
+        endereco_real end = T[pid][pagina];
+        if(escreve){
+            cout << "Escrita na pagina " << pagina <<
+	        		", correspondente ao quadro " << end.quadro <<
+	        		", no endereco " << (endereco&MASCARA_ENDERECO) << endl;
+        } else{
+            cout << "Leitura na pagina " << pagina <<
+	        		", correspondente ao quadro " << end.quadro <<
+	        		", no endereco " << (endereco&MASCARA_ENDERECO) << endl;
+        }
+    }else{
+        cout << "É necessário implementar função que libera memória principal " <<
+        "e traz o processo da memória secundária, portanto necessário algoritmo " <<
+        "de substituição" << endl;
     }
 
     return true;
