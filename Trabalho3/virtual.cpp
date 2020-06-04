@@ -82,6 +82,7 @@ void encerra_processo(string pid, vector<bool> &bit_vector, tabela_processos &ta
     }
     //Retira o processo da lista
     tabela_virtual.erase(pid);
+    cout << "Processo " << pid << " encerrado" << endl;
 
     return;
 }
@@ -113,7 +114,7 @@ void cria_processo(string pid, int n_quadros, vector<bool> &bit_vector, tabela_p
 		}
 		//caso nao exista memoria
 		else{
-			cout << "Não há memória disponível para nova página, encerrando " << pid << endl;
+			cout << "Não há memória disponível para nova página" << endl;
             encerra_processo(pid, bit_vector, tabela_virtual);
 
 		}
@@ -221,7 +222,6 @@ int main(){
                 int endereco = extrai_endereco(arg);
                 if(!realiza_RW(endereco, pid, tabela_virtual, true)){
                     encerra_processo(pid, prim_mem, tabela_virtual);
-                    cout << "Processo " << pid << " encerrado!" << endl;
                 }
                 break;
             }
@@ -230,7 +230,6 @@ int main(){
                 int endereco = extrai_endereco(arg);
                 if(!realiza_RW(endereco, pid, tabela_virtual, false)){
                     encerra_processo(pid, prim_mem, tabela_virtual);
-                    cout << "Processo " << pid << " encerrado!" << endl;
                 }
                 break;
             }
