@@ -138,11 +138,9 @@ int extrai_endereco(string arg){
 	return stoi(aux);
 }
 
-bool realiza_RW(string arg, string pid, tabela_processos T, bool escreve){  //Recebe as strings arg, pid, a tabela de processos e um booleano
+bool realiza_RW(int endereco, string pid, tabela_processos T, bool escreve){  //Recebe as strings arg, pid, a tabela de processos e um booleano
                                                                             //true para indicar escrita e false para leitura
     //Modo mais simples de escrita, quando tudo está em RAM
-	int endereco = extrai_endereco(arg);
-
     int pagina = endereco & MASCARA_PAGINA;
     pagina = pagina >> bits_tamanho;
 	
@@ -177,10 +175,16 @@ bool realiza_RW(string arg, string pid, tabela_processos T, bool escreve){  //Re
 
 int main(){
     //Declara vetor de bits dos quadros de páginas na memória principal
-    vector<bool> bit_vector;
+    vector<bool> prim_mem;
     //Inicializado como 1 (todos os quadros livres)
-    bit_vector.assign(NUM_QUADROS, true);
-   
+    prim_mem.assign(NUM_QUADROS, true);
+
+    //Declara vetor de bits dos quadros de páginas na memória secundária
+    vector<bool> sec_mem;
+    //Inicializando como 1 (todos os quadros livres)
+    sec_mem.assign(NUM_QUADROS, true);
+    //NUM_QUADROS aqui deve assumir outro valor não?
+
     //Declara tabela de mapeamento virtual
     tabela_processos tabela_virtual;
 
@@ -208,22 +212,24 @@ int main(){
             case 'C': 
             {
 				int n_paginas = ceil(stof(arg)/TAM_QUADRO);
-				cria_processo( pid, n_paginas, bit_vector, tabela_virtual);
+				cria_processo( pid, n_paginas, prim_mem, tabela_virtual);
                 break;
             }
 
             case 'W': 
             {
-                if(!realiza_RW(arg, pid, tabela_virtual, true)){
-                    encerra_processo(pid, bit_vector, tabela_virtual);
+                int endereco = extrai_endereco(arg);
+                if(!realiza_RW(endereco, pid, tabela_virtual, true)){
+                    encerra_processo(pid, prim_mem, tabela_virtual);
                     cout << "Processo " << pid << " encerrado!" << endl;
                 }
                 break;
             }
             case 'R': 
             {
-                if(!realiza_RW(arg, pid, tabela_virtual, false)){
-                    encerra_processo(pid, bit_vector, tabela_virtual);
+                int endereco = extrai_endereco(arg);
+                if(!realiza_RW(endereco, pid, tabela_virtual, false)){
+                    encerra_processo(pid, prim_mem, tabela_virtual);
                     cout << "Processo " << pid << " encerrado!" << endl;
                 }
                 break;
@@ -236,9 +242,9 @@ int main(){
     entrada.close();
 
     //Util no debugging
-    cout << endl << "bit_vector:" << endl;
-	for(unsigned int i = 0; i < bit_vector.size(); i++)
-	    cout << bit_vector[i];
+    cout << endl << "prim_mem:" << endl;
+	for(unsigned int i = 0; i < prim_mem.size(); i++)
+	    cout << prim_mem[i];
     cout << endl << "tabela de processos:" << endl;
 	print_tabela_processos(tabela_virtual);
     cout << endl << "MASCARA_ENDERECO:" << endl;
