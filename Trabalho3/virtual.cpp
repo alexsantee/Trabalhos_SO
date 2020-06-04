@@ -8,24 +8,18 @@
 using namespace std;
 
 //Constantes ajustaveis:
-//numero de bits para armazenar cada grandeza
-const unsigned int bits_tamanho = 9;
-const unsigned int bits_pagina = 5;
-const unsigned int bits_quadro = 3;
+//Numero de bits para guardar endereço dentro da pagina
+const unsigned int bits_endereco = 8;
+//Tamanho das memorias em número de páginas
+const unsigned int NUMERO_QUADROS_PRINCIPAL = 1;
+const unsigned int NUMERO_QUADROS_SECUNDARIA = 4;
 
-//Gerados automaticamente:
-//Memória Virtual
-const unsigned int NUM_PAGINAS = 1 << bits_pagina;
-const unsigned int TAM_PAGINA  = 1 << bits_tamanho;
+//Constantes geradas automaticamente
+const unsigned int NUMERO_PAGINAS_VIRTUAL = NUMERO_QUADROS_PRINCIPAL + NUMERO_QUADROS_SECUNDARIA;
 //gera numero da pagina com AND. bits menos significativos. ex: 0b00011111 
-const unsigned int MASCARA_ENDERECO = 0xffffffff + TAM_PAGINA;
+const unsigned int MASCARA_ENDERECO = (1<<bits_endereco)-1;
 //gera numero da pagina com AND. bits mais significativos.  ex: 0b11100000
-const unsigned int MASCARA_PAGINA = (0xffffffff ^ MASCARA_ENDERECO) + TAM_PAGINA*NUM_PAGINAS;
-
-//Memoria Real
-const unsigned int NUM_QUADROS = 1 << bits_quadro;
-const unsigned int TAM_QUADRO = TAM_PAGINA;
-const unsigned int MASCARA_QUADRO = (0xffffffff ^ MASCARA_ENDERECO) + TAM_QUADRO*NUM_QUADROS;
+const unsigned int MASCARA_PAGINA = ~MASCARA_ENDERECO;
 
 /*
  *  Estrutura da tabela de endereçamento virtual:
@@ -142,7 +136,7 @@ bool realiza_RW(int endereco, string pid, tabela_processos T, bool escreve){  //
                                                                             //true para indicar escrita e false para leitura
     //Modo mais simples de escrita, quando tudo está em RAM
     int pagina = endereco & MASCARA_PAGINA;
-    pagina = pagina >> bits_tamanho;
+    pagina = pagina >> bits_endereco;
 	
     if(T.count(pid) == 0){
         cout << "Acesso inválido, processo " << pid << " inexistente!" << endl;
@@ -183,12 +177,12 @@ int main(){
     //Declara vetor de bits dos quadros de páginas na memória principal
     vector<bool> prim_mem;
     //Inicializado como 1 (todos os quadros livres)
-    prim_mem.assign(NUM_QUADROS, true);
+    prim_mem.assign(NUMERO_QUADROS_PRINCIPAL, true);
 
     //Declara vetor de bits dos quadros de páginas na memória secundária
     vector<bool> sec_mem;
     //Inicializando como 1 (todos os quadros livres)
-    sec_mem.assign(NUM_QUADROS, true);
+    sec_mem.assign(NUMERO_QUADROS_SECUNDARIA, true);
     //NUM_QUADROS aqui deve assumir outro valor não?
 
     //Declara tabela de mapeamento virtual
@@ -217,7 +211,7 @@ int main(){
         switch(command.at(0)){
             case 'C': 
             {
-				int n_paginas = ceil(stof(arg)/TAM_QUADRO);
+				int n_paginas = (stoi(arg) & MASCARA_PAGINA) >> bits_endereco;
 				cria_processo( pid, n_paginas, prim_mem, tabela_virtual);
                 break;
             }
@@ -251,14 +245,15 @@ int main(){
     cout << endl << "prim_mem:" << endl;
 	for(unsigned int i = 0; i < prim_mem.size(); i++)
 	    cout << prim_mem[i];
+    cout << endl << "sec_mem:" << endl;
+	for(unsigned int i = 0; i < sec_mem.size(); i++)
+	    cout << sec_mem[i];
     cout << endl << "tabela de processos:" << endl;
 	print_tabela_processos(tabela_virtual);
     cout << endl << "MASCARA_ENDERECO:" << endl;
     print_binario(MASCARA_ENDERECO);
     cout << endl << "MASCARA_PAGINA:" << endl;
     print_binario(MASCARA_PAGINA);
-    cout << endl << "MASCARA QUADRO:" << endl;
-    print_binario(MASCARA_QUADRO);
     cout << endl;
     return 0;
 }
