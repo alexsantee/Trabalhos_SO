@@ -122,6 +122,32 @@ void cria_processo(string pid, int n_quadros, vector<bool> &bit_vector, tabela_p
 	return;
 }
 
+void time_subst(vector<bool> &prim, vector<bool> &sec, string pid, int pag, tabela_processos &T){ //Função responsável por implementar algoritmo de substituição
+    int menorT;                                                                               //de páginas com base na página utilizada a mais tempo      
+    int menorQ;
+    tabela_enderecos aux;                                                                
+    for(tabela_processos :: iterator i = T.begin(); i != T.end(); i++)
+    {
+        aux = i->second;
+        for(tabela_enderecos :: iterator j = aux.begin(); j != aux.end(); j++){
+            if(j->second.residencia == true && j->second.ultimo_uso < menorT){
+                menorT = j->second.ultimo_uso;
+                menorQ = j->second.quadro;
+                j->second.residencia = false;
+            }
+        }
+    }
+
+    prim[menorQ] = true;
+    prim[T[pid][pag].quadro] = false;
+    sec[menorQ] = false;
+    sec[T[pid][pag].quadro] = true;
+
+    T[pid][pag].residencia = true;
+
+    return;
+}
+
 int extrai_endereco(string arg){
 	int n1 = arg.find('(');
 	int n2 = arg.find(')');
@@ -133,20 +159,20 @@ int extrai_endereco(string arg){
 	return stoi(aux);
 }
 
-bool realiza_RW(int endereco, string pid, tabela_processos T, bool escreve){  //Recebe as strings arg, pid, a tabela de processos e um booleano
-                                                                            //true para indicar escrita e false para leitura
+int realiza_RW(int endereco, string pid, tabela_processos T, bool escreve){  //Recebe as strings arg, pid, a tabela de processos e um booleano
+                                                                               //true para indicar escrita e false para leitura
     //Modo mais simples de escrita, quando tudo está em RAM
     int pagina = endereco & MASCARA_PAGINA;
     pagina = pagina >> bits_endereco;
 	
     if(T.count(pid) == 0){
         cout << "Acesso inválido, processo " << pid << " inexistente!" << endl;
-        return true;
+        return -1;
     }
     else{ 
         if(T[pid].count(pagina) == 0){
             cout << "Acesso inválido da pagina " << pagina << " pelo processo " << pid << "!" << endl;
-            return false;
+            return -2;
         }
     }
 
@@ -165,12 +191,14 @@ bool realiza_RW(int endereco, string pid, tabela_processos T, bool escreve){  //
 	        		", no endereco " << (endereco&MASCARA_ENDERECO) << endl;
         }
     }else{
-        cout << "É necessário implementar função que libera memória principal " <<
+        /*cout << "É necessário implementar função que libera memória principal " <<
         "e traz o processo da memória secundária, portanto necessário algoritmo " <<
-        "de substituição" << endl;
+        "de substituição" << endl;*/
+
+        return pagina;
     }
 
-    return true;
+    return -1;
     //A função retorna true se não houver necessidade de encerrar o processo, do contrário retorna false
 }
 
@@ -220,17 +248,28 @@ int main(){
             case 'W': 
             {
                 int endereco = extrai_endereco(arg);
-                if(!realiza_RW(endereco, pid, tabela_virtual, true)){
+                int pagina = realiza_RW(endereco, pid, tabela_virtual, true);
+                if(pagina == -2)
                     encerra_processo(pid, prim_mem, tabela_virtual);
+                else if (pagina >= 0)
+                {
+                    time_subst(prim_mem, sec_mem, pid, pagina, tabela_virtual);
+                    realiza_RW(endereco, pid, tabela_virtual, true);
                 }
                 break;
             }
             case 'R': 
             {
                 int endereco = extrai_endereco(arg);
-                if(!realiza_RW(endereco, pid, tabela_virtual, false)){
+                int pagina = realiza_RW(endereco, pid, tabela_virtual, false);
+                if(pagina == -2)
                     encerra_processo(pid, prim_mem, tabela_virtual);
+                else if (pagina >= 0)
+                {
+                    time_subst(prim_mem, sec_mem, pid, pagina, tabela_virtual);
+                    realiza_RW(endereco, pid, tabela_virtual, false);
                 }
+                
                 break;
             }
             case 'P': cout << "Faz o comando de instrução da CPU" << endl; break;
