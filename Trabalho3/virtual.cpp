@@ -123,7 +123,7 @@ void cria_processo(string pid, int n_quadros, vector<bool> &bit_vector, tabela_p
 }
 
 void time_subst(vector<bool> &prim, vector<bool> &sec, string pid, int pag, tabela_processos &T){ //Função responsável por implementar algoritmo de substituição
-    int menorT;                                                                               //de páginas com base na página utilizada a mais tempo      
+    int menorT;                                                                                   //de páginas com base na página utilizada a mais tempo      
     int menorQ;
     tabela_enderecos aux;                                                                
     for(tabela_processos :: iterator i = T.begin(); i != T.end(); i++)
@@ -141,6 +141,32 @@ void time_subst(vector<bool> &prim, vector<bool> &sec, string pid, int pag, tabe
     prim[menorQ] = true;
     prim[T[pid][pag].quadro] = false;
     sec[menorQ] = false;
+    sec[T[pid][pag].quadro] = true;
+
+    T[pid][pag].residencia = true;
+
+    return;
+}
+
+void first_subst(vector<bool> &prim, vector<bool> &sec, string pid, int pag, tabela_processos &T){ //Função responsável por implementar algoritmo de substituição    
+    int q;                                                                                         //que substitui a primeira pagina em ram que encontrar
+    tabela_enderecos aux;
+    for(tabela_processos :: iterator i = T.begin(); i != T.end(); i++)
+    {
+        aux = i->second;
+        for(tabela_enderecos :: iterator j = aux.begin(); j != aux.end(); j++)
+        {
+            if(j->second.residencia == true)
+            {
+                q = j->second.quadro;
+                j->second.residencia = false;
+            }
+        }
+    }
+
+    prim[q] = true;
+    prim[T[pid][pag].quadro] = false;
+    sec[q] = false;
     sec[T[pid][pag].quadro] = true;
 
     T[pid][pag].residencia = true;
@@ -253,7 +279,7 @@ int main(){
                     encerra_processo(pid, prim_mem, tabela_virtual);
                 else if (pagina >= 0)
                 {
-                    time_subst(prim_mem, sec_mem, pid, pagina, tabela_virtual);
+                    time_subst(prim_mem, sec_mem, pid, pagina, tabela_virtual); //Função de subst baseada em menor tempo
                     realiza_RW(endereco, pid, tabela_virtual, true);
                 }
                 break;
@@ -266,7 +292,7 @@ int main(){
                     encerra_processo(pid, prim_mem, tabela_virtual);
                 else if (pagina >= 0)
                 {
-                    time_subst(prim_mem, sec_mem, pid, pagina, tabela_virtual);
+                    time_subst(prim_mem, sec_mem, pid, pagina, tabela_virtual); //Função de subst baseada em menor tempo
                     realiza_RW(endereco, pid, tabela_virtual, false);
                 }
                 
