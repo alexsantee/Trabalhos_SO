@@ -123,34 +123,38 @@ void cria_processo(string pid, int n_quadros, vector<bool> &bit_vector, tabela_p
 }
 
 void time_subst(vector<bool> &prim, vector<bool> &sec, string pid, int pag, tabela_processos &T){ //Função responsável por implementar algoritmo de substituição
-    int menorT;                                                                                   //de páginas com base na página utilizada a mais tempo      
-    int menorQ;
-    tabela_enderecos aux;                                                                
+    int menorT;                                                                                   //de páginas com base na página utilizada a mais tempo
+    int Qaux;                                                                                           
+    tabela_enderecos aux;  
+    endereco_real menorEnd;                                                       
     for(tabela_processos :: iterator i = T.begin(); i != T.end(); i++)
     {
         aux = i->second;
         for(tabela_enderecos :: iterator j = aux.begin(); j != aux.end(); j++){
             if(j->second.residencia == true && j->second.ultimo_uso < menorT){
                 menorT = j->second.ultimo_uso;
-                menorQ = j->second.quadro;
-                j->second.residencia = false;
+                menorEnd = j->second;
             }
         }
     }
 
-    prim[menorQ] = true;
-    prim[T[pid][pag].quadro] = false;
-    sec[menorQ] = false;
-    sec[T[pid][pag].quadro] = true;
+    //Aqui poderia ser feito uma nova alocação no HD para a pagina removida, mas optamos por fazer apenas uma permuta
+    Qaux = menorEnd.quadro;
+    menorEnd.quadro = T[pid][pag].quadro;
+    T[pid][pag].quadro = Qaux;
 
     T[pid][pag].residencia = true;
+    menorEnd.residencia = false;
 
+    menorEnd.ultimo_uso = clock();
     return;
 }
 
 void first_subst(vector<bool> &prim, vector<bool> &sec, string pid, int pag, tabela_processos &T){ //Função responsável por implementar algoritmo de substituição    
-    int q;                                                                                         //que substitui a primeira pagina em ram que encontrar
+    endereco_real auxEnd;                                                                          //que substitui a primeira pagina em ram que encontrar
     tabela_enderecos aux;
+    int Qaux;
+
     for(tabela_processos :: iterator i = T.begin(); i != T.end(); i++)
     {
         aux = i->second;
@@ -158,19 +162,20 @@ void first_subst(vector<bool> &prim, vector<bool> &sec, string pid, int pag, tab
         {
             if(j->second.residencia == true)
             {
-                q = j->second.quadro;
-                j->second.residencia = false;
+                auxEnd = j->second;
             }
         }
     }
 
-    prim[q] = true;
-    prim[T[pid][pag].quadro] = false;
-    sec[q] = false;
-    sec[T[pid][pag].quadro] = true;
+    //Aqui poderia ser feito uma nova alocação no HD para a pagina removida, mas optamos por fazer apenas uma permuta
+    Qaux = auxEnd.quadro;
+    auxEnd.quadro = T[pid][pag].quadro;
+    T[pid][pag].quadro = Qaux;
 
     T[pid][pag].residencia = true;
+    auxEnd.residencia = false;
 
+    auxEnd.ultimo_uso = clock();
     return;
 }
 
