@@ -20,6 +20,7 @@ const unsigned int NUMERO_PAGINAS_VIRTUAL = NUMERO_QUADROS_PRINCIPAL + NUMERO_QU
 const unsigned int MASCARA_ENDERECO = (1<<bits_endereco)-1;
 //gera numero da pagina com AND. bits mais significativos.  ex: 0b11100000
 const unsigned int MASCARA_PAGINA = ~MASCARA_ENDERECO;
+const unsigned int TAM_PAGINA = pow(2,bits_endereco);
 
 /*
  *  Estrutura da tabela de endereçamento virtual:
@@ -72,14 +73,25 @@ void print_binario(unsigned int n){
     }
 }
 
-void encerra_processo(string pid, vector<bool> &bit_vector, tabela_processos &tabela_virtual){
+void encerra_processo(string pid, vector<bool> &bit_vector_prim, vector<bool> &bit_vector_sec, tabela_processos &tabela_virtual){
+    //verifica se processo existe
+    if(tabela_virtual.count(pid) == 0){
+		cout << "Processo " << pid << "não foi encerrado porque não existe" << endl;
+		return;
+	}
 
     //Libera todos os enderecos virtuais ligados ao processo
     tabela_enderecos processo = tabela_virtual[pid];
     tabela_enderecos::iterator it;
     for(it = processo.begin(); it != processo.end(); it++){
-        bit_vector[it->second.quadro] = true;
+        if(it->second.residencia == true){
+            bit_vector_prim[it->second.quadro] = true;
+        }
+        else{
+            bit_vector_sec[it->second.quadro] = true;
+        }
     }
+
     //Retira o processo da lista
     tabela_virtual.erase(pid);
     cout << "Processo " << pid << " encerrado" << endl;
@@ -87,7 +99,7 @@ void encerra_processo(string pid, vector<bool> &bit_vector, tabela_processos &ta
     return;
 }
 
-void cria_processo(string pid, int n_quadros, vector<bool> &bit_vector, tabela_processos &tabela_virtual){
+void cria_processo(string pid, int n_quadros, vector<bool> &bit_vector_prim, vector<bool> &bit_vector_sec, tabela_processos &tabela_virtual){
     //verifica se processo ja existe
     if(tabela_virtual.count(pid) == 1){
 		cout << "Processo " << pid << "não foi criado porque já existe" << endl;
@@ -97,27 +109,44 @@ void cria_processo(string pid, int n_quadros, vector<bool> &bit_vector, tabela_p
 	//encontra quadros vazios
 	for(int i = 0; i < n_quadros; i++){
 		unsigned int pos;
+        bool primaria;
 
-		//encontra um quadro vazio
-		for(pos = 0; bit_vector[pos] == false && pos < bit_vector.size() ;pos++)
-			;
+		//busca um quadro vazio na memória primária
+        primaria = false;
+		for(pos = 0; pos < bit_vector_prim.size() ;pos++){
+            if (bit_vector_prim[pos] == true){
+                primaria = true;
+                break;
+            }
+        }
 
-		//ocupa quadro se disponivel
-		if(bit_vector[pos] == true){
-			bit_vector[pos] = false;
-			cout << "Alocado quadro " << pos  << " para " << pid << endl;
-			//associa quadro ao processo
-            tabela_virtual[pid][i].quadro = pos;
-			tabela_virtual[pid][i].residencia = true;
-			tabela_virtual[pid][i].ultimo_uso = clock();
+        //se não encontrado, busca um quadro vazio na memória secundária
+        if (!primaria){
+            for(pos = 0; bit_vector_sec[pos] == false && pos < bit_vector_sec.size() ;pos++)
+                ;
+        }
 
-		}
-		//caso nao exista memoria
-		else{
-			cout << "Não há memória disponível para nova página" << endl;
-            encerra_processo(pid, bit_vector, tabela_virtual);
+        //se não encontrado, encerra o processo
+        if(!primaria && bit_vector_sec[pos] == false){
+            cout << "Não há memória disponível para nova página" << endl;
+            encerra_processo(pid, bit_vector_prim, bit_vector_sec, tabela_virtual);
+            return;
+        }
 
-		}
+		//ocupa quadro
+        tabela_virtual[pid][i].quadro = pos;
+        if (primaria){
+        	bit_vector_prim[pos] = false;
+            tabela_virtual[pid][i].residencia = true;
+            cout << "Alocado quadro " << pos  << " para " << pid << " na memória primária" << endl;
+        }
+        else{
+            bit_vector_sec[pos] = false;
+            tabela_virtual[pid][i].residencia = false;
+            cout << "Alocado quadro " << pos  << " para " << pid << " na memória secundária" << endl;
+        }
+        tabela_virtual[pid][i].ultimo_uso = clock();
+
 	}
 	return;
 }
@@ -139,6 +168,9 @@ void time_subst(vector<bool> &prim, vector<bool> &sec, string pid, int pag, tabe
     }
 
     //Aqui poderia ser feito uma nova alocação no HD para a pagina removida, mas optamos por fazer apenas uma permuta
+    cout << "Quadro " << menorEnd.quadro << " da memória primária trocada por " << 
+            T[pid][pag].quadro << " da secundária" << endl;
+
     Qaux = menorEnd.quadro;
     menorEnd.quadro = T[pid][pag].quadro;
     T[pid][pag].quadro = Qaux;
@@ -271,8 +303,8 @@ int main(){
         switch(command.at(0)){
             case 'C': 
             {
-				int n_paginas = (stoi(arg) & MASCARA_PAGINA) >> bits_endereco;
-				cria_processo( pid, n_paginas, prim_mem, tabela_virtual);
+				int n_paginas = ceil(stoi(arg)/float(TAM_PAGINA));
+				cria_processo( pid, n_paginas, prim_mem, sec_mem, tabela_virtual);
                 break;
             }
 
@@ -281,7 +313,7 @@ int main(){
                 int endereco = extrai_endereco(arg);
                 int pagina = realiza_RW(endereco, pid, tabela_virtual, true);
                 if(pagina == -2)
-                    encerra_processo(pid, prim_mem, tabela_virtual);
+                    encerra_processo(pid, prim_mem, sec_mem,tabela_virtual);
                 else if (pagina >= 0)
                 {
                     time_subst(prim_mem, sec_mem, pid, pagina, tabela_virtual); //Função de subst baseada em menor tempo
@@ -294,7 +326,7 @@ int main(){
                 int endereco = extrai_endereco(arg);
                 int pagina = realiza_RW(endereco, pid, tabela_virtual, false);
                 if(pagina == -2)
-                    encerra_processo(pid, prim_mem, tabela_virtual);
+                    encerra_processo(pid, prim_mem, sec_mem,tabela_virtual);
                 else if (pagina >= 0)
                 {
                     time_subst(prim_mem, sec_mem, pid, pagina, tabela_virtual); //Função de subst baseada em menor tempo
