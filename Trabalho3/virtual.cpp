@@ -9,7 +9,7 @@ using namespace std;
 
 //Constantes ajustaveis:
 //Numero de bits para guardar endereço dentro da pagina
-const unsigned int bits_endereco = 8;
+const unsigned int bits_endereco = 13;
 //Tamanho das memorias em número de páginas
 const unsigned int NUMERO_QUADROS_PRINCIPAL = 1;
 const unsigned int NUMERO_QUADROS_SECUNDARIA = 4;
@@ -155,30 +155,33 @@ void time_subst(vector<bool> &prim, vector<bool> &sec, string pid, int pag, tabe
     int menorT;                                                                                   //de páginas com base na página utilizada a mais tempo
     int Qaux;                                                                                           
     tabela_enderecos aux;  
-    endereco_real menorEnd;                                                       
+    endereco_real* menorEnd;      
+
+    menorT =   T.begin()->second.begin()->second.ultimo_uso;
+    menorEnd = &((&(*T.begin()))->second.begin()->second); //Tem algum jeite melhor de escrever isso?
     for(tabela_processos :: iterator i = T.begin(); i != T.end(); i++)
     {
         aux = i->second;
         for(tabela_enderecos :: iterator j = aux.begin(); j != aux.end(); j++){
             if(j->second.residencia == true && j->second.ultimo_uso < menorT){
                 menorT = j->second.ultimo_uso;
-                menorEnd = j->second;
+                menorEnd = &j->second;
             }
         }
     }
 
     //Aqui poderia ser feito uma nova alocação no HD para a pagina removida, mas optamos por fazer apenas uma permuta
-    cout << "Quadro " << menorEnd.quadro << " da memória primária trocada por " << 
+    cout << "Quadro " << menorEnd->quadro << " da memória primária trocada por " << 
             T[pid][pag].quadro << " da secundária" << endl;
 
-    Qaux = menorEnd.quadro;
-    menorEnd.quadro = T[pid][pag].quadro;
+    T[pid][pag].residencia = true;
+    T[pid][pag].ultimo_uso = clock();
+    menorEnd->residencia = false;
+
+    Qaux = menorEnd->quadro;
+    menorEnd->quadro = T[pid][pag].quadro;
     T[pid][pag].quadro = Qaux;
 
-    T[pid][pag].residencia = true;
-    menorEnd.residencia = false;
-
-    menorEnd.ultimo_uso = clock();
     return;
 }
 
