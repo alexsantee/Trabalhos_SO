@@ -4,6 +4,7 @@
 #include <map>
 #include <math.h>
 #include <ctime>
+#include <climits>
 
 using namespace std;
 
@@ -152,17 +153,15 @@ void cria_processo(string pid, int n_quadros, vector<bool> &bit_vector_prim, vec
 }
 
 void time_subst(vector<bool> &prim, vector<bool> &sec, string pid, int pag, tabela_processos &T){ //Função responsável por implementar algoritmo de substituição
-    int menorT;                                                                                   //de páginas com base na página utilizada a mais tempo
+    unsigned int menorT;                                                                                   //de páginas com base na página utilizada a mais tempo
     int Qaux;                                                                                           
-    tabela_enderecos aux;  
-    endereco_real* menorEnd;      
+    endereco_real* menorEnd; 
 
-    menorT =   T.begin()->second.begin()->second.ultimo_uso;
-    menorEnd = &((&(*T.begin()))->second.begin()->second); //Tem algum jeite melhor de escrever isso?
+    menorT =   UINT_MAX;
+    menorEnd = NULL;
     for(tabela_processos :: iterator i = T.begin(); i != T.end(); i++)
     {
-        aux = i->second;
-        for(tabela_enderecos :: iterator j = aux.begin(); j != aux.end(); j++){
+        for(tabela_enderecos :: iterator j = i->second.begin(); j != i->second.end(); j++){
             if(j->second.residencia == true && j->second.ultimo_uso < menorT){
                 menorT = j->second.ultimo_uso;
                 menorEnd = &j->second;
