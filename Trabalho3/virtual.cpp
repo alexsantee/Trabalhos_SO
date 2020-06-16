@@ -275,7 +275,7 @@ bool hdtoram(string pid, int pagina, tabela_processos &T, vector<bool> &prim, ve
             T[pid][pagina].quadro = i;
             T[pid][pagina].residencia = true;
             T[pid][pagina].ultimo_uso = clock();
-            cout << "Página "<< pagina << "do processo " << pid << "alocado em RAM!" << endl;
+            cout << "Página "<< pagina << " do processo " << pid << " alocado em RAM no quadro " << i << "!" << endl;
             return true;
         }
     }
