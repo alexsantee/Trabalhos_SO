@@ -336,8 +336,8 @@ int main(){
                 {
                     if(!hdtoram(pid, pagina, tabela_virtual, prim_mem, sec_mem)){
                         time_subst(prim_mem, sec_mem, pid, pagina, tabela_virtual); //Função de subst baseada em menor tempo
-                        realiza_RW(endereco, pid, tabela_virtual, true);
                     }
+                    realiza_RW(endereco, pid, tabela_virtual, true);
                 }
                 break;
             }
@@ -351,8 +351,8 @@ int main(){
                 {
                     if(!hdtoram(pid, pagina, tabela_virtual, prim_mem, sec_mem)){
                         time_subst(prim_mem, sec_mem, pid, pagina, tabela_virtual); //Função de subst baseada em menor tempo
-                        realiza_RW(endereco, pid, tabela_virtual, false);
                     }
+                    realiza_RW(endereco, pid, tabela_virtual, false);
                 }
                 
                 break;
