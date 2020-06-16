@@ -225,7 +225,7 @@ int extrai_endereco(string arg){
 }
 
 int realiza_RW(int endereco, string pid, tabela_processos T, bool escreve){  //Recebe as strings arg, pid, a tabela de processos e um booleano
-                                                                               //true para indicar escrita e false para leitura
+                                                                                                                    //true para indicar escrita e false para leitura
     //Modo mais simples de escrita, quando tudo está em RAM
     int pagina = endereco & MASCARA_PAGINA;
     pagina = pagina >> bits_endereco;
@@ -265,6 +265,22 @@ int realiza_RW(int endereco, string pid, tabela_processos T, bool escreve){  //R
 
     return -1;
     //A função retorna true se não houver necessidade de encerrar o processo, do contrário retorna false
+}
+
+bool hdtoram(string pid, int pagina, tabela_processos &T, vector<bool> &prim, vector<bool> &sec){
+    for(int i = 0; i < prim.size(); i++){
+        if (prim[i] == true){
+            prim[i] = false;
+            sec[T[pid][pagina].quadro] = true;
+            T[pid][pagina].quadro = i;
+            T[pid][pagina].residencia = true;
+            T[pid][pagina].ultimo_uso = clock();
+            cout << "Página "<< pagina << "do processo " << pid << "alocado em RAM!" << endl;
+            return true;
+        }
+    }
+
+    return false;
 }
 
 int main(){
@@ -318,8 +334,10 @@ int main(){
                     encerra_processo(pid, prim_mem, sec_mem,tabela_virtual);
                 else if (pagina >= 0)
                 {
-                    time_subst(prim_mem, sec_mem, pid, pagina, tabela_virtual); //Função de subst baseada em menor tempo
-                    realiza_RW(endereco, pid, tabela_virtual, true);
+                    if(!hdtoram(pid, pagina, tabela_virtual, prim_mem, sec_mem)){
+                        time_subst(prim_mem, sec_mem, pid, pagina, tabela_virtual); //Função de subst baseada em menor tempo
+                        realiza_RW(endereco, pid, tabela_virtual, true);
+                    }
                 }
                 break;
             }
@@ -331,8 +349,10 @@ int main(){
                     encerra_processo(pid, prim_mem, sec_mem,tabela_virtual);
                 else if (pagina >= 0)
                 {
-                    time_subst(prim_mem, sec_mem, pid, pagina, tabela_virtual); //Função de subst baseada em menor tempo
-                    realiza_RW(endereco, pid, tabela_virtual, false);
+                    if(!hdtoram(pid, pagina, tabela_virtual, prim_mem, sec_mem)){
+                        time_subst(prim_mem, sec_mem, pid, pagina, tabela_virtual); //Função de subst baseada em menor tempo
+                        realiza_RW(endereco, pid, tabela_virtual, false);
+                    }
                 }
                 
                 break;
