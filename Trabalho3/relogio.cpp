@@ -105,8 +105,8 @@ void encerra_processo(string pid, vector<bool> &bit_vector_prim,
         if(it->second.residencia == true){
             it->second.next->prev = it->second.prev;
             it->second.prev->next = it->second.next;
-            if (relogio == &(it->second)){
-                if(it->second.next = &(it->second)){  //Ultimo elemento da lista
+            if (relogio->quadro == it->second.quadro){
+                if(it->second.next == it->second.prev){  //Ultimo elemento da lista
                     relogio = NULL;
                 }
                 else{
@@ -279,7 +279,7 @@ int realiza_RW(int endereco, string pid, tabela_processos T, bool escreve){  //R
     //A função retorna true se não houver necessidade de encerrar o processo, do contrário retorna false
 }
 
-bool hdtoram(string pid, int pagina, tabela_processos &T, vector<bool> &prim, vector<bool> &sec){
+bool hdtoram(string pid, int pagina, tabela_processos &T, vector<bool> &prim, vector<bool> &sec, endereco_real* &relogio){
     for(int i = 0; i < prim.size(); i++){
         if (prim[i] == true){
             prim[i] = false;
@@ -287,6 +287,12 @@ bool hdtoram(string pid, int pagina, tabela_processos &T, vector<bool> &prim, ve
             T[pid][pagina].quadro = i;
             T[pid][pagina].residencia = true;
             T[pid][pagina].referencia = true;
+
+            T[pid][pagina].next = relogio;
+            T[pid][pagina].prev = relogio->prev;
+            relogio->prev->next = &T[pid][pagina];
+            relogio->prev = &T[pid][pagina];
+
             cout << "Página "<< pagina << " do processo " << pid << " alocado em RAM no quadro " << i << "!" << endl;
             return true;
         }
@@ -347,7 +353,7 @@ int main(){
                     encerra_processo(pid, prim_mem, sec_mem, tabela_virtual, ponteiro_relogio);
                 else if (pagina >= 0)
                 {
-                    if(!hdtoram(pid, pagina, tabela_virtual, prim_mem, sec_mem)){
+                    if(!hdtoram(pid, pagina, tabela_virtual, prim_mem, sec_mem, ponteiro_relogio)){
                         substitui_pagina(pid, pagina, tabela_virtual, ponteiro_relogio);
                     }
                     realiza_RW(endereco, pid, tabela_virtual, true);
@@ -362,7 +368,7 @@ int main(){
                     encerra_processo(pid, prim_mem, sec_mem, tabela_virtual, ponteiro_relogio);
                 else if (pagina >= 0)
                 {
-                    if(!hdtoram(pid, pagina, tabela_virtual, prim_mem, sec_mem)){
+                    if(!hdtoram(pid, pagina, tabela_virtual, prim_mem, sec_mem, ponteiro_relogio)){
                         substitui_pagina(pid, pagina, tabela_virtual, ponteiro_relogio);
                     }
                     realiza_RW(endereco, pid, tabela_virtual, false);
