@@ -99,14 +99,13 @@ void encerra_processo(string pid, vector<bool> &bit_vector_prim,
 	}
 
     //Libera todos os enderecos virtuais ligados ao processo
-    tabela_enderecos processo = tabela_virtual[pid];
     tabela_enderecos::iterator it;
-    for(it = processo.begin(); it != processo.end(); it++){
+    for(it = tabela_virtual[pid].begin(); it != tabela_virtual[pid].end(); it++){
         if(it->second.residencia == true){
             it->second.next->prev = it->second.prev;
             it->second.prev->next = it->second.next;
             if (relogio->quadro == it->second.quadro){
-                if(it->second.next == it->second.prev){  //Ultimo elemento da lista
+                if(it->second.next == &it->second){  //Ultimo elemento da lista
                     relogio = NULL;
                 }
                 else{
